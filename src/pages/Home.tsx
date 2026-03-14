@@ -26,15 +26,18 @@ function HeroSection() {
         <section className="relative h-screen flex items-center justify-start overflow-hidden">
             {/* Background Video with Light Overlay */}
             <div className="absolute inset-0 z-0 bg-gray-100 overflow-hidden pointer-events-none">
-                <iframe
-                    src="https://www.youtube.com/embed/3aQW0TYdffM?autoplay=1&mute=1&loop=1&playlist=3aQW0TYdffM&controls=0&showinfo=0&rel=0&modestbranding=1"
-                    className="absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-[100vh] min-w-[177.77vh] -translate-x-1/2 -translate-y-1/2 opacity-60 mix-blend-multiply"
-                    allow="autoplay; encrypted-media"
-                    title="Background Video"
-                ></iframe>
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover opacity-100"
+                >
+                    <source src="/Happy_customer_sony_m3_with_28-70mm_sold_to_customer_Yuvraj_camera_wala_1080P.mp4" type="video/mp4" />
+                </video>
             </div>
             {/* Gradient to make text readable on the left */}
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent z-10"></div>
+            <div className="absolute inset-0 w-full md:w-2/3 bg-gradient-to-r from-white via-white/90 to-transparent z-10"></div>
 
             {/* Content */}
             <div className="relative z-20 px-8 sm:px-12 md:px-20 max-w-7xl w-full mx-auto">
@@ -55,7 +58,24 @@ function HeroSection() {
                         transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
                         className="text-5xl md:text-8xl font-black text-gray-900 tracking-tighter uppercase mb-6 leading-[0.9]"
                     >
-                        Capture <br /><span className="text-brand-600">Perfection</span>
+                        Capture <br />
+                        <span className="text-brand-600 inline-flex items-center min-h-[1em]">
+                            <motion.span
+                                animate={{
+                                    width: ["0%", "100%", "100%", "0%", "0%"],
+                                }}
+                                transition={{
+                                    duration: 4,
+                                    repeat: Infinity,
+                                    ease: "linear",
+                                    times: [0, 0.4, 0.6, 0.9, 1] // Types out, stays, erases, stays erased briefly
+                                }}
+                                className="overflow-hidden whitespace-nowrap inline-block border-r-4 border-brand-600 pr-1"
+                                style={{ display: "inline-flex" }}
+                            >
+                                Perfection
+                            </motion.span>
+                        </span>
                     </motion.h1>
 
                     <motion.p
