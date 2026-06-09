@@ -3,7 +3,7 @@ import { useAdminStore, Product } from '../../store/adminStore';
 import { Plus, Edit2, Trash2, Search } from 'lucide-react';
 
 export function AdminProducts() {
-    const { products, deleteProduct, addProduct, updateProduct } = useAdminStore();
+    const { products, deleteProduct, addProduct, updateProduct, markProductSold } = useAdminStore();
     const [search, setSearch] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -85,7 +85,12 @@ export function AdminProducts() {
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-bold">
                                         {product.price}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="px-6 py-4 whitespace-nowrap flex flex-col gap-1 items-start">
+                                        {product.soldAt && (
+                                            <span className="px-2 inline-flex text-[10px] leading-5 font-black tracking-widest rounded-sm bg-red-600 text-white uppercase">
+                                                SOLD
+                                            </span>
+                                        )}
                                         {product.isNew ? (
                                             <span className="px-2 inline-flex text-xs leading-5 font-bold rounded-full bg-brand-100 text-brand-700">
                                                 NEW
@@ -97,6 +102,12 @@ export function AdminProducts() {
                                         )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button
+                                            onClick={() => markProductSold(product.id, !product.soldAt)}
+                                            className={`mr-4 font-bold text-xs px-2 py-1 rounded-md ${product.soldAt ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
+                                        >
+                                            {product.soldAt ? 'MARK AVAILABLE' : 'MARK SOLD'}
+                                        </button>
                                         <button onClick={() => handleEdit(product)} className="text-brand-600 hover:text-brand-900 mr-4">
                                             <Edit2 size={16} />
                                         </button>

@@ -78,10 +78,19 @@ export function Equipment() {
                             >
                                 {/* Image & Tag */}
                                 <div className="bg-gray-50 rounded-2xl aspect-[4/3] mb-5 relative overflow-hidden flex items-center justify-center">
-                                    <img src={product.image} alt={product.name} className="max-w-[80%] max-h-[80%] object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" />
-                                    <div className={`absolute top-3 right-3 px-2 py-1 rounded text-[10px] font-bold tracking-wider ${product.stock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                        {product.stock ? 'IN STOCK' : 'OUT OF STOCK'}
-                                    </div>
+                                    <img src={product.image} alt={product.name} className={`max-w-[80%] max-h-[80%] object-contain mix-blend-multiply transition-transform duration-500 ${product.soldAt ? 'grayscale opacity-50' : 'group-hover:scale-110'}`} />
+                                    {!product.soldAt && (
+                                        <div className={`absolute top-3 right-3 px-2 py-1 rounded text-[10px] font-bold tracking-wider ${product.stock ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                            {product.stock ? 'IN STOCK' : 'OUT OF STOCK'}
+                                        </div>
+                                    )}
+                                    {product.soldAt && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black/5 z-10">
+                                            <div className="bg-red-600 text-white font-black tracking-widest text-lg px-6 py-2 rotate-[-12deg] shadow-xl uppercase border-2 border-white">
+                                                SOLD OUT
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Content */}
@@ -114,8 +123,12 @@ export function Equipment() {
                                         >
                                             VIEW MORE
                                         </button>
-                                        <button onClick={() => openModal('quote', { productName: product.name })} className="flex-1 bg-brand-600 text-white font-bold px-4 py-3 rounded-xl tracking-wider hover:bg-brand-700 transition-colors text-xs flex justify-center items-center gap-1 shadow-md cursor-pointer">
-                                            <Phone size={14} /> QUOTE
+                                        <button 
+                                            disabled={!!product.soldAt}
+                                            onClick={() => openModal('quote', { productName: product.name })} 
+                                            className={`flex-1 font-bold px-4 py-3 rounded-xl tracking-wider transition-colors text-xs flex justify-center items-center gap-1 shadow-md ${product.soldAt ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-brand-600 text-white hover:bg-brand-700 cursor-pointer'}`}
+                                        >
+                                            <Phone size={14} /> {product.soldAt ? 'UNAVAILABLE' : 'QUOTE'}
                                         </button>
                                     </div>
                                 </div>

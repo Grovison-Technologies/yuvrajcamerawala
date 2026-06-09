@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Package, Image as ImageIcon, MessageSquare, LogOut, ChevronLeft, Menu, X } from 'lucide-react';
+import { Package, Image as ImageIcon, MessageSquare, LogOut, ChevronLeft, Menu, X, Tags, Inbox } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { useAdminStore } from '../../store/adminStore';
 
 export function AdminLayout() {
     const location = useLocation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const { inquiries } = useAdminStore();
+    const newInquiriesCount = inquiries.filter(i => i.status === 'new').length;
 
     // Close menu when route changes
     useEffect(() => {
@@ -14,6 +17,8 @@ export function AdminLayout() {
 
     const navigation = [
         { name: 'Products', href: '/admin/products', icon: Package },
+        { name: 'Combo Deals', href: '/admin/combos', icon: Tags },
+        { name: 'Inquiries', href: '/admin/inquiries', icon: Inbox, badge: newInquiriesCount },
         { name: 'Images', href: '/admin/images', icon: ImageIcon },
         { name: 'News & Reviews', href: '/admin/news', icon: MessageSquare },
     ];
@@ -54,23 +59,34 @@ export function AdminLayout() {
                         <nav className="px-4 space-y-1">
                             {navigation.map((item) => {
                                 const isActive = location.pathname.startsWith(item.href);
+                                const Icon = item.icon;
                                 return (
                                     <Link
                                         key={item.name}
                                         to={item.href}
+                                        onClick={() => setIsMobileMenuOpen(false)}
                                         className={cn(
-                                            isActive ? 'bg-brand-50 text-brand-600' : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
-                                            'group flex items-center px-3 py-3 text-sm font-medium rounded-md transition-colors'
+                                            isActive
+                                                ? 'bg-brand-50 text-brand-600'
+                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                                            'group flex items-center justify-between px-3 py-2 text-sm font-bold tracking-wide rounded-lg transition-colors'
                                         )}
                                     >
-                                        <item.icon
-                                            className={cn(
-                                                isActive ? 'text-brand-600' : 'text-gray-400 group-hover:text-gray-500',
-                                                'flex-shrink-0 -ml-1 mr-3 h-5 w-5 transition-colors'
-                                            )}
-                                            aria-hidden="true"
-                                        />
-                                        {item.name}
+                                        <div className="flex items-center">
+                                            <Icon
+                                                className={cn(
+                                                    isActive ? 'text-brand-600' : 'text-gray-400 group-hover:text-gray-500',
+                                                    'mr-3 flex-shrink-0 h-5 w-5'
+                                                )}
+                                                aria-hidden="true"
+                                            />
+                                            {item.name}
+                                        </div>
+                                        {(item as any).badge > 0 && (
+                                            <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+                                                {(item as any).badge}
+                                            </span>
+                                        )}
                                     </Link>
                                 );
                             })}

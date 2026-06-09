@@ -1,5 +1,5 @@
-// Provide simple global store for the mock admin data
 import { create } from 'zustand';
+import { supabase } from '../lib/supabase';
 
 export type Product = {
     id: string;
@@ -15,6 +15,18 @@ export type Product = {
     features?: string[];
     longDesc?: string;
     oldPrice?: string;
+    soldAt?: string | null;
+};
+
+export type ComboDeal = {
+    id: string;
+    name: string;
+    originalPrice: string;
+    discountedPrice: string;
+    desc: string;
+    image: string;
+    items?: string[];
+    isFeatured?: boolean;
 };
 
 export type NewsReview = {
@@ -26,6 +38,17 @@ export type NewsReview = {
     image?: string;
 };
 
+export type Inquiry = {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+    requirements?: string;
+    productName?: string;
+    status: 'new' | 'read';
+    created_at: string;
+};
+
 export type AdminImage = {
     id: string;
     url: string;
@@ -35,11 +58,27 @@ export type AdminImage = {
 
 type AdminStore = {
     products: Product[];
+    combos: ComboDeal[];
+    inquiries: Inquiry[];
     newsReviews: NewsReview[];
     images: AdminImage[];
-    addProduct: (product: Omit<Product, 'id'>) => void;
-    updateProduct: (id: string, data: Partial<Product>) => void;
-    deleteProduct: (id: string) => void;
+    
+    // Async actions for Supabase
+    fetchProducts: () => Promise<void>;
+    addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
+    updateProduct: (id: string, data: Partial<Product>) => Promise<void>;
+    deleteProduct: (id: string) => Promise<void>;
+    markProductSold: (id: string, isSold: boolean) => Promise<void>;
+    cleanupSoldProducts: () => Promise<void>;
+
+    fetchCombos: () => Promise<void>;
+    addCombo: (combo: Omit<ComboDeal, 'id'>) => Promise<void>;
+    updateCombo: (id: string, data: Partial<ComboDeal>) => Promise<void>;
+    deleteCombo: (id: string) => Promise<void>;
+
+    fetchInquiries: () => Promise<void>;
+    markInquiryRead: (id: string) => Promise<void>;
+    deleteInquiry: (id: string) => Promise<void>;
 
     addNewsReview: (item: Omit<NewsReview, 'id'>) => void;
     updateNewsReview: (id: string, data: Partial<NewsReview>) => void;
@@ -48,17 +87,6 @@ type AdminStore = {
     addImage: (image: AdminImage) => void;
     deleteImage: (id: string) => void;
 };
-
-// Initial mock data
-const initialProducts: Product[] = [
-    { id: '1', name: 'Sony Alpha A7 R V', category: 'Mirrorless', price: '₹3,40,000', oldPrice: '₹3,60,000', rating: 5, desc: '61MP Full-Frame, 8K Video', longDesc: 'Combining resolution and precision, the Sony a7R V is the mirrorless camera designed for those who crave detail. Features a 61MP sensor and an entirely new AI-based autofocus system.', isNew: true, stock: true, features: ['61MP', '8K Video', 'AI AF'], image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=500', images: ['https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=500'] },
-    { id: '2', name: 'Canon EOS R5', category: 'Mirrorless', price: '₹3,15,000', oldPrice: '₹3,40,000', rating: 5, desc: '45MP Full-Frame, 8K RAW video.', isNew: true, stock: true, features: ['45MP', '8K RAW', 'IBIS'], image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&q=80&w=500', images: ['https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&q=80&w=500'] },
-    { id: '3', name: 'DJI Mavic 3 Pro', category: 'Drones', price: '₹2,10,000', rating: 5, desc: 'Hasselblad camera, triple-lens.', isNew: true, stock: false, features: ['4/3 CMOS', '5.1K Video', '43min max flight'], image: 'https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&q=80&w=500', images: ['https://images.unsplash.com/photo-1473968512647-3e447244af8f?auto=format&fit=crop&q=80&w=500'] },
-    { id: '4', name: 'Sigma 24-70mm Lens', category: 'Lenses', price: '₹95,000', oldPrice: '₹1,05,000', rating: 4, desc: 'Art series standard zoom lens.', isNew: true, stock: true, features: ['f/2.8', 'E-mount', 'Weather Sealed'], image: 'https://images.unsplash.com/photo-1616423640778-28d1b53229bd?auto=format&fit=crop&q=80&w=500', images: ['https://images.unsplash.com/photo-1616423640778-28d1b53229bd?auto=format&fit=crop&q=80&w=500'] },
-    { id: '5', name: 'Nikon Z8', category: 'Mirrorless', price: '₹3,20,000', rating: 5, desc: '45.7MP FX-Format, 8K60p', isNew: false, stock: true, features: ['45.7MP', '8K60p', 'No Mechanical Shutter'], image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=500' },
-    { id: '6', name: 'GoPro HERO 12', category: 'Action Cameras', price: '₹40,000', rating: 4, desc: 'Waterproof Action Camera', isNew: false, stock: true, features: ['5.3K60', 'HDR Video', 'HyperSmooth 6.0'], image: 'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&q=80&w=500' },
-    { id: '7', name: 'Sony FX3', category: 'Mirrorless', price: '₹3,80,000', rating: 5, desc: 'Cinema Line Full-Frame', isNew: false, stock: true, features: ['12.1MP', '4K120p', 'Dual Base ISO'], image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=500' },
-];
 
 const initialNewsReviews: NewsReview[] = [
     { id: '1', content: "🎉 EXTENDED FESTIVE SALE: Flat 15% OFF on all Sony Lenses this weekend only!", author: "Yuvraj Admin", role: "Store", rating: 0, image: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80" },
@@ -69,19 +97,220 @@ const initialNewsReviews: NewsReview[] = [
 ];
 
 export const useAdminStore = create<AdminStore>((set) => ({
-    products: initialProducts,
+    products: [], 
+    combos: [],
+    inquiries: [],
     newsReviews: initialNewsReviews,
     images: [],
 
-    addProduct: (product) => set((state) => ({
-        products: [{ ...product, id: Math.random().toString(36).substr(2, 9) }, ...state.products]
-    })),
-    updateProduct: (id, data) => set((state) => ({
-        products: state.products.map(p => p.id === id ? { ...p, ...data } : p)
-    })),
-    deleteProduct: (id) => set((state) => ({
-        products: state.products.filter(p => p.id !== id)
-    })),
+    fetchProducts: async () => {
+        const { data, error } = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Error fetching products:', error);
+            return;
+        }
+        
+        if (data) {
+            set({ products: data as Product[] });
+        }
+    },
+
+    addProduct: async (product) => {
+        const { data, error } = await supabase
+            .from('products')
+            .insert([product])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error adding product:', error);
+            return;
+        }
+
+        if (data) {
+            set((state) => ({
+                products: [data as Product, ...state.products]
+            }));
+        }
+    },
+
+    updateProduct: async (id, dataToUpdate) => {
+        const { error, data } = await supabase
+            .from('products')
+            .update(dataToUpdate)
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error updating product:', error);
+            return;
+        }
+
+        if (data) {
+            set((state) => ({
+                products: state.products.map(p => p.id === id ? { ...p, ...dataToUpdate, ...data } : p)
+            }));
+        }
+    },
+
+    deleteProduct: async (id) => {
+        const { error } = await supabase
+            .from('products')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting product:', error);
+            return;
+        }
+
+        set((state) => ({
+            products: state.products.filter(p => p.id !== id)
+        }));
+    },
+
+    markProductSold: async (id, isSold) => {
+        const soldAt = isSold ? new Date().toISOString() : null;
+        const { error, data } = await supabase
+            .from('products')
+            .update({ soldAt })
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) {
+            console.error('Error marking product sold:', error);
+            return;
+        }
+        if (data) {
+            set((state) => ({
+                products: state.products.map(p => p.id === id ? { ...p, soldAt } : p)
+            }));
+        }
+    },
+
+    cleanupSoldProducts: async () => {
+        const fortyEightHoursAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+        const { error } = await supabase
+            .from('products')
+            .delete()
+            .not('soldAt', 'is', null)
+            .lt('soldAt', fortyEightHoursAgo);
+            
+        if (error) {
+            console.error('Error cleaning up sold products:', error);
+            return;
+        }
+        
+        // Clean up frontend state just in case
+        set((state) => ({
+            products: state.products.filter(p => !p.soldAt || new Date(p.soldAt) > new Date(fortyEightHoursAgo))
+        }));
+    },
+
+    fetchCombos: async () => {
+        const { data, error } = await supabase
+            .from('combos')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (error) {
+            console.error('Error fetching combos:', error);
+            return;
+        }
+        if (data) set({ combos: data as ComboDeal[] });
+    },
+
+    addCombo: async (combo) => {
+        const { data, error } = await supabase
+            .from('combos')
+            .insert([combo])
+            .select()
+            .single();
+        if (error) {
+            console.error('Error adding combo:', error);
+            return;
+        }
+        if (data) {
+            set((state) => ({ combos: [data as ComboDeal, ...state.combos] }));
+        }
+    },
+
+    updateCombo: async (id, dataToUpdate) => {
+        const { error, data } = await supabase
+            .from('combos')
+            .update(dataToUpdate)
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) {
+            console.error('Error updating combo:', error);
+            return;
+        }
+        if (data) {
+            set((state) => ({
+                combos: state.combos.map(c => c.id === id ? { ...c, ...dataToUpdate, ...data } : c)
+            }));
+        }
+    },
+
+    deleteCombo: async (id) => {
+        const { error } = await supabase
+            .from('combos')
+            .delete()
+            .eq('id', id);
+        if (error) {
+            console.error('Error deleting combo:', error);
+            return;
+        }
+        set((state) => ({
+            combos: state.combos.filter(c => c.id !== id)
+        }));
+    },
+
+    fetchInquiries: async () => {
+        const { data, error } = await supabase
+            .from('inquiries')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (error) {
+            console.error('Error fetching inquiries:', error);
+            return;
+        }
+        if (data) set({ inquiries: data as Inquiry[] });
+    },
+
+    markInquiryRead: async (id) => {
+        const { error, data } = await supabase
+            .from('inquiries')
+            .update({ status: 'read' })
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) {
+            console.error('Error marking inquiry read:', error);
+            return;
+        }
+        if (data) {
+            set((state) => ({
+                inquiries: state.inquiries.map(i => i.id === id ? { ...i, status: 'read' } : i)
+            }));
+        }
+    },
+
+    deleteInquiry: async (id) => {
+        const { error } = await supabase.from('inquiries').delete().eq('id', id);
+        if (error) {
+            console.error('Error deleting inquiry:', error);
+            return;
+        }
+        set((state) => ({
+            inquiries: state.inquiries.filter(i => i.id !== id)
+        }));
+    },
 
     addNewsReview: (item) => set((state) => ({
         newsReviews: [{ ...item, id: Math.random().toString(36).substr(2, 9) }, ...state.newsReviews]

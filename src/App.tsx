@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
 import Lenis from 'lenis';
 
+import { useAdminStore } from './store/adminStore';
+
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
 import { Equipment } from './pages/Equipment.tsx';
@@ -11,10 +13,24 @@ import { ModalProvider } from './contexts/ModalContext';
 
 import { AdminLayout } from './components/layout/AdminLayout';
 import { AdminProducts } from './pages/admin/AdminProducts';
+import { AdminCombos } from './pages/admin/AdminCombos';
+import { AdminInquiries } from './pages/admin/AdminInquiries';
 import { AdminImages } from './pages/admin/AdminImages';
 import { AdminNewsReviews } from './pages/admin/AdminNewsReviews';
 
 function App() {
+  const fetchProducts = useAdminStore(state => state.fetchProducts);
+  const fetchCombos = useAdminStore(state => state.fetchCombos);
+  const fetchInquiries = useAdminStore(state => state.fetchInquiries);
+  const cleanupSoldProducts = useAdminStore(state => state.cleanupSoldProducts);
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCombos();
+    fetchInquiries();
+    cleanupSoldProducts();
+  }, [fetchProducts, fetchCombos, fetchInquiries, cleanupSoldProducts]);
+
   useEffect(() => {
     // Initialize Lenis smooth scrolling
     const lenis = new Lenis({
@@ -55,6 +71,8 @@ function App() {
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminProducts />} /> {/* Default to Products for now */}
             <Route path="products" element={<AdminProducts />} />
+            <Route path="combos" element={<AdminCombos />} />
+            <Route path="inquiries" element={<AdminInquiries />} />
             <Route path="images" element={<AdminImages />} />
             <Route path="news" element={<AdminNewsReviews />} />
           </Route>

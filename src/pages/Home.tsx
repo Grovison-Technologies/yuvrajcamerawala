@@ -220,10 +220,17 @@ function NewestArrivals() {
                             className="bg-white border border-gray-200 shadow-sm hover:shadow-xl rounded-2xl p-5 flex flex-col group transition-all duration-300"
                         >
                             <div className="relative aspect-square bg-gray-50/80 rounded-xl mb-5 overflow-hidden flex items-center justify-center">
-                                <img src={product.image} alt={product.name} className="w-[85%] h-[85%] object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-500" />
-                                {product.isNew && (
+                                <img src={product.image} alt={product.name} className={`w-[85%] h-[85%] object-contain mix-blend-multiply transition-transform duration-500 ${product.soldAt ? 'grayscale opacity-50' : 'group-hover:scale-110'}`} />
+                                {product.isNew && !product.soldAt && (
                                     <div className="absolute top-3 left-3 bg-brand-600 text-white text-[10px] font-bold tracking-wider px-2 py-1 rounded shadow-sm">
                                         NEW
+                                    </div>
+                                )}
+                                {product.soldAt && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/5 z-10">
+                                        <div className="bg-red-600 text-white font-black tracking-widest text-lg px-6 py-2 rotate-[-12deg] shadow-xl uppercase border-2 border-white">
+                                            SOLD OUT
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -249,8 +256,12 @@ function NewestArrivals() {
                                         >
                                             VIEW MORE
                                         </button>
-                                        <button onClick={() => openModal('quote', { productName: product.name })} className="flex-[2] bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs py-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-md hover:shadow-lg">
-                                            INQUIRE <ChevronRight size={14} strokeWidth={2.5} />
+                                        <button 
+                                            disabled={!!product.soldAt}
+                                            onClick={() => openModal('quote', { productName: product.name })} 
+                                            className={`flex-[2] font-bold text-xs py-3 rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-md ${product.soldAt ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-brand-600 hover:bg-brand-700 text-white hover:shadow-lg'}`}
+                                        >
+                                            {product.soldAt ? 'UNAVAILABLE' : 'INQUIRE'} <ChevronRight size={14} strokeWidth={2.5} />
                                         </button>
                                     </div>
                                 </div>
@@ -435,6 +446,60 @@ function NewsReviewsCards() {
     );
 }
 
+function ComboDealsSection() {
+    const { combos } = useAdminStore();
+    const { openModal } = useModal();
+
+    if (!combos || combos.length === 0) return null;
+
+    return (
+        <section className="py-24 bg-zinc-50 border-t border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="mb-16 text-center">
+                    <h2 className="text-3xl md:text-5xl font-black text-gray-900 tracking-tighter uppercase mb-4">Exclusive Combo Deals</h2>
+                    <p className="text-gray-500 font-medium max-w-2xl mx-auto text-sm sm:text-base">Save big with our carefully curated professional kits.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {combos.map((combo, idx) => (
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: idx * 0.1 }}
+                            key={combo.id}
+                            className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all group flex flex-col"
+                        >
+                            <div className="relative h-64 bg-gray-100 overflow-hidden">
+                                <img src={combo.image} alt={combo.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                                {combo.isFeatured && (
+                                    <div className="absolute top-4 left-4 bg-yellow-400 text-yellow-900 text-[10px] font-black tracking-widest px-3 py-1.5 rounded-full shadow-md uppercase">
+                                        Featured Deal
+                                    </div>
+                                )}
+                            </div>
+                            <div className="p-8 flex flex-col flex-1">
+                                <h3 className="text-xl font-black text-gray-900 mb-2 uppercase tracking-tight leading-tight">{combo.name}</h3>
+                                <p className="text-gray-500 text-sm mb-6 line-clamp-3 leading-relaxed">{combo.desc}</p>
+                                
+                                <div className="mt-auto">
+                                    <div className="flex items-end gap-3 mb-6">
+                                        <div className="text-3xl font-black text-brand-600 tracking-tighter">{combo.discountedPrice}</div>
+                                        <div className="text-lg font-bold text-gray-400 line-through pb-1">{combo.originalPrice}</div>
+                                    </div>
+                                    <button onClick={() => openModal('quote', { productName: combo.name })} className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl hover:bg-brand-600 transition-colors tracking-widest text-xs uppercase flex items-center justify-center gap-2">
+                                        Claim Deal <ChevronRight size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
 export function Home() {
     const { openModal } = useModal();
 
@@ -443,6 +508,7 @@ export function Home() {
             <HeroSection />
             <Marquee />
             <NewestArrivals />
+            <ComboDealsSection />
             <BentoCategories />
             <SeriesBanner />
             <VideoReviews />
